@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Text Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-empty {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .batch-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .batch-results {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .batch-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .batch-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .batch-text {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 OCR Text Extractor</h1>
+            <p>Upload images to extract text using advanced OCR technology</p>
+        </div>
+
+        <div class="content">
+            <!-- Single File Upload -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">Click to upload or drag & drop an image</div>
+                    <div class="upload-hint">Supports PNG, JPG, JPEG, GIF, BMP, TIFF (max 16MB)</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" />
+                
+                <div class="file-info" id="fileInfo">
+                    <strong>Selected file:</strong> <span id="fileName"></span>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-primary" onclick="extractText()" id="extractBtn" disabled>
+                        Extract Text
+                    </button>
+                    <button class="btn-secondary" onclick="clearAll()">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your image... Please wait.</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="result-section" id="resultSection">
+                <h3>Extracted Text:</h3>
+                <div class="result-box" id="resultBox">
+                    <div class="result-empty">No text extracted yet. Upload an image to get started.</div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-success" onclick="copyToClipboard()">
+                        📋 Copy Text
+                    </button>
+                    <button class="btn-secondary" onclick="downloadText()">
+                        💾 Download as TXT
+                    </button>
+                </div>
+            </div>
+
+            <!-- Batch Processing -->
+            <div class="batch-section">
+                <h3>🔄 Batch Processing</h3>
+                <p style="color: #666; margin-bottom: 20px;">Upload multiple images to extract text from all at once</p>
+                
+                <div class="upload-area" id="batchUploadArea">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">Click to upload multiple images</div>
+                    <div class="upload-hint">Hold Ctrl/Cmd to select multiple files</div>
+                </div>
+                <input type="file" id="batchFileInput" accept="image/*" multiple />
+                
+                <div class="buttons">
+                    <button class="btn-primary" onclick="extractBatchText()" id="batchExtractBtn" disabled>
+                        Extract All Text
+                    </button>
+                </div>
+
+                <div class="batch-results" id="batchResults"></div>
+            </div>
+
+            <!-- Messages -->
+            <div class="error" id="errorMessage"></div>
+            <div class="success" id="successMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let extractedText = '';
+        let batchResults = [];
+
+        // Single file upload handlers
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const extractBtn = document.getElementById('extractBtn');
+
+        // Batch upload handlers
+        const batchUploadArea = document.getElementById('batchUploadArea');
+        const batchFileInput = document.getElementById('batchFileInput');
+        const batchExtractBtn = document.getElementById('batchExtractBtn');
+
+        // Upload area click handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+        batchUploadArea.addEventListener('click', () => batchFileInput.click());
+
+        // File input change handlers
+        fileInput.addEventListener('change', handleFileSelect);
+        batchFileInput.addEventListener('change', handleBatchFileSelect);
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+                extractBtn.disabled = false;
+            }
+        }
+
+        function handleBatchFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                batchExtractBtn.disabled = false;
+                showSuccess(`${files.length} files selected for batch processing`);
+            }
+        }
+
+        function displayFileInfo(file) {
+            fileName.textContent = file.name;
+            fileInfo.style.display = 'block';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                displayFileInfo(files[0]);
+                extractBtn.disabled = false;
+            }
+        }
+
+        async function extractText() {
+            const file = fileInput.files[0];
+            if (!file) {
+                showError('Please select a file first');
+                return;
+            }
+
+            showLoading();
+            hideMessages();
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/extract-text', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    extractedText = result.text;
+                    displayResult(extractedText);
+                    showSuccess('Text extracted successfully!');
+                } else {
+                    showError(result.error || 'Failed to extract text');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function extractBatchText() {
+            const files = batchFileInput.files;
+            if (files.length === 0) {
+                showError('Please select files for batch processing');
+                return;
+            }
+
+            showLoading();
+            hideMessages();
+
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('images', file);
+            }
+
+            try {
+                const response = await fetch('/extract-text-batch', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    batchResults = result.results;
+                    displayBatchResults(batchResults);
+                    showSuccess(`Processed ${result.total_processed} files successfully!`);
+                } else {
+                    showError(result.error || 'Failed to process batch');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayResult(text) {
+            const resultBox = document.getElementById('resultBox');
+            const resultSection = document.getElementById('resultSection');
+            
+            if (text.trim()) {
+                resultBox.textContent = text;
+                resultBox.classList.remove('result-empty');
+            } else {
+                resultBox.innerHTML = '<div class="result-empty">No text found in the image</div>';
+            }
+            
+            resultSection.style.display = 'block';
+        }
+
+        function displayBatchResults(results) {
+            const batchResultsDiv = document.getElementById('batchResults');
+            batchResultsDiv.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'batch-item';
+                
+                if (result.success) {
+                    itemDiv.innerHTML = `
+                        <h4>${result.filename}</h4>
+                        <div class="batch-text">${result.text || 'No text found'}</div>
+                    `;
+                } else {
+                    itemDiv.innerHTML = `
+                        <h4>${result.filename} (Error)</h4>
+                        <div style="color: #721c24;">${result.error}</div>
+                    `;
+                }
+                
+                batchResultsDiv.appendChild(itemDiv);
+            });
+            
+            batchResultsDiv.style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            if (extractedText) {
+                navigator.clipboard.writeText(extractedText).then(() => {
+                    showSuccess('Text copied to clipboard!');
+                }).catch(() => {
+                    showError('Failed to copy text');
+                });
+            }
+        }
+
+        function downloadText() {
+            if (extractedText) {
+                const blob = new Blob([extractedText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extracted-text.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                showSuccess('Text downloaded successfully!');
+            }
+        }
+
+        function clearAll() {
+            fileInput.value = '';
+            batchFileInput.value = '';
+            extractedText = '';
+            batchResults = [];
+            
+            fileInfo.style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('batchResults').style.display = 'none';
+            
+            extractBtn.disabled = true;
+            batchExtractBtn.disabled = true;
+            
+            hideMessages();
+            showSuccess('All data cleared');
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Auto-hide messages after 5 seconds
+        function autoHideMessage(element) {
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // Health check on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/health');
+                const result = await response.json();
+                if (result.status === 'healthy') {
+                    console.log('✅ OCR service is running');
+                }
+            } catch (error) {
+                console.error('❌ OCR service check failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>
