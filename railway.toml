@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+aptPkgs = ["tesseract-ocr", "tesseract-ocr-eng"]
+
+[deploy]
+startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+restartPolicyType = "always"
+
+[env]
+PYTHON_VERSION = "3.11"
