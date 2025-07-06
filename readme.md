@@ -2,6 +2,9 @@
 
 A modern web application for extracting text from images using Optical Character Recognition (OCR) technology. Built with Flask and Tesseract OCR, featuring a beautiful responsive interface and both single and batch processing capabilities.
 
+## Link:
+- Web-Ocr can be found at [Web-Ocr](https://web-ocr.up.railway.app)
+
 ## Features
 
 - **Single Image Processing**: Upload and extract text from individual images
