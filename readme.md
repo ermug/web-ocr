@@ -3,7 +3,7 @@
 A modern web application for extracting text from images using Optical Character Recognition (OCR) technology. Built with Flask and Tesseract OCR, featuring a beautiful responsive interface and both single and batch processing capabilities.
 
 ## Link:
--  ̶W̶e̶b̶-̶O̶c̶r̶ ̶c̶a̶n̶ ̶b̶e̶ ̶f̶o̶u̶n̶d̶ ̶a̶t̶ ̶[̶W̶e̶b̶-̶O̶c̶r̶]̶(̶h̶t̶t̶p̶s̶:̶/̶/̶w̶e̶b̶-̶o̶c̶r̶.̶u̶p̶.̶r̶a̶i̶l̶w̶a̶y̶.̶a̶p̶p̶)̶
+-  ̶W̶e̶b̶-̶O̶c̶r̶ ̶c̶a̶n̶ ̶b̶e̶ ̶f̶o̶u̶n̶d̶ ̶a̶t̶ ̶h̶t̶t̶p̶s̶:̶/̶/̶w̶e̶b̶-̶o̶c̶r̶.̶u̶p̶.̶r̶a̶i̶l̶w̶a̶y̶.̶a̶p̶p̶)̶
 -  The website has been taken offline due to lack of funds. Thank you for your patience as I look for alternatives to hosting
 
 ## Features
